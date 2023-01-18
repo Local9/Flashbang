@@ -46,16 +46,16 @@ namespace Flashbang.Server
             return closestPlayers;
         }
 
-        private void OnFlashbangMessageAsync(string message)
+        private void OnFlashbangMessageAsync(string jsonMessage)
         {
-            FlashbangMessage flashbangMessage = JsonConvert.DeserializeObject<FlashbangMessage>(message);
+            FlashbangMessage flashbangMessage = JsonConvert.DeserializeObject<FlashbangMessage>(jsonMessage);
             flashbangMessage.StunDuration = _config.StunDuration;
             flashbangMessage.AfterStunDuration = _config.AfterStunDuration;
             flashbangMessage.Range = _config.Range;
             flashbangMessage.Damage = _config.Damage;
             flashbangMessage.LethalRadius = _config.LethalRadius;
 
-            TriggerClientEvent("Flashbang:DispatchExplosion", JsonConvert.SerializeObject(flashbangMessage));
+            TriggerClientEvent("Flashbang:Explode", JsonConvert.SerializeObject(flashbangMessage));
         }
     }
 }

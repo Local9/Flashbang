@@ -37,6 +37,7 @@ namespace Flashbang.Client
             EventHandlers["Flashbang:Explode"] += new Action<string>(OnFlashbangExplodeAsync);
 
             Tick += OnFlashbangAsync;
+            // Tick += OnFlashbangDebugAsync;
         }
 
         private async void SendFlashbangThrownMessage(int propHandle)
@@ -215,6 +216,7 @@ namespace Flashbang.Client
                     break;
                 default:
                     ped.Task.ClearAnimation(ANIMATION_DICT, ANIMATION_EXIT);
+                    ped.Task.ClearAll();
                     break;
             }
         }
@@ -226,6 +228,15 @@ namespace Flashbang.Client
                 ped.ApplyDamage(damage);
             }
         }
+
+        Vector3 lastPlayerHitReg = Vector3.Zero;
+        Vector3 lastMessagePosition = Vector3.Zero;
+
+        //public async Task OnFlashbangDebugAsync()
+        //{
+        //    if (lastMessagePosition == Vector3.Zero) return;
+        //    API.DrawLine(lastMessagePosition.X, lastMessagePosition.Y, lastMessagePosition.Z, lastPlayerHitReg.X, lastPlayerHitReg.Y, lastPlayerHitReg.Z, 255, 0, 0, 255);
+        //}
 
         public async void OnFlashbangExplodeAsync(string jsonMessage)
         {
@@ -240,14 +251,16 @@ namespace Flashbang.Client
             bool playerHit = false;
             Vector3 hitPos = new Vector3();
             Vector3 surfaceNormal = new Vector3();
-            Vector3 pedPos = API.GetPedBoneCoords(pedHandle, 0x62ac, 0, 0, 0);
-            Vector3 pedPos2 = API.GetPedBoneCoords(pedHandle, 0x6b52, 0, 0, 0);
-            Vector3 pos = message.Position;
-            Vector3 hitReg = new Vector3(pedPos.X - message.Position.X, pedPos.Y - message.Position.X, pedPos.Z - message.Position.Z); // Richtungsvektor
-            PlayParticleEffectAtPosition(pos);
+            
+            Vector3 pedPos = ped.Bones[Bone.IK_Head].Position;
+            Vector3 pedPos2 = ped.Bones[Bone.SKEL_Head].Position;
 
-            float distance = World.GetDistance(ped.Position, pos);
-            float faceDistance = World.GetDistance(pedPos, pos);
+            lastMessagePosition = message.Position;
+            Vector3 hitReg = new Vector3(pedPos.X - message.Position.X, pedPos.Y - message.Position.Y, pedPos.Z - message.Position.Z); // Richtungsvektor
+            PlayParticleEffectAtPosition(lastMessagePosition);
+
+            float distance = World.GetDistance(ped.Position, lastMessagePosition);
+            float faceDistance = World.GetDistance(pedPos, lastMessagePosition);
             float distanceSq = distance * distance;
 
             float effectFalloffMultiplier = 0.02f / (message.Range / 8.0f); // Radius ~< effectFalloffMultiplier
@@ -272,27 +285,31 @@ namespace Flashbang.Client
                 actualAfterTime = 1;
             }
 
-            int handle = API.StartShapeTestLosProbe(pos.X, pos.Y, pos.Z, pedPos.X + (10 * hitReg.X), pedPos.Y + (10 * hitReg.Y), pedPos.Z + (10 * hitReg.Z), 0b0000_0000_1001_1111, message.Prop, 0b0000_0000_0000_0100);
+            lastPlayerHitReg = new Vector3(pedPos2.X + (10 * hitReg.X), pedPos2.Y + (10 * hitReg.Y), pedPos2.Z + (10 * hitReg.Z));
+
+            int handle = API.StartShapeTestLosProbe(lastMessagePosition.X, lastMessagePosition.Y, lastMessagePosition.Z, lastPlayerHitReg.X, lastPlayerHitReg.Y, lastPlayerHitReg.Z, 0b0000_0000_1001_1111, message.Prop, 0b0000_0000_0000_0100);
 
             while (result == 1)
             {
                 result = API.GetShapeTestResult(handle, ref hit, ref hitPos, ref surfaceNormal, ref entityHit);
                 await Delay(0);
             }
+
             playerHit = (result == 2) && (entityHit == pedHandle);
 
-            handle = API.StartShapeTestLosProbe(pos.X, pos.Y, pos.Z, pedPos2.X + (10 * hitReg.X), pedPos2.Y + (10 * hitReg.Y), pedPos2.Z + (10 * hitReg.Z), 0b0000_0000_1001_1111, message.Prop, 0b0000_0000_0000_0100);
+            handle = API.StartShapeTestLosProbe(lastMessagePosition.X, lastMessagePosition.Y, lastMessagePosition.Z, lastPlayerHitReg.X, lastPlayerHitReg.Y, lastPlayerHitReg.Z, 0b0000_0000_1001_1111, message.Prop, 0b0000_0000_0000_0100);
 
             while (handle == 1)
             {
                 API.GetShapeTestResult(handle, ref hit, ref hitPos, ref surfaceNormal, ref entityHit);
                 await Delay(0);
             }
+            
             playerHit = playerHit || ((result == 2) && (entityHit == pedHandle));
 
-            if ((faceDistance <= message.Range) && playerHit)
+            if (faceDistance <= message.Range && playerHit)
             {
-                ApplyDamageToPedIfInLethalRadius(ped, pos, message.LethalRadius, message.Damage);
+                ApplyDamageToPedIfInLethalRadius(ped, lastMessagePosition, message.LethalRadius, message.Damage);
                 FlashbangEffect(shakeCamAmp * stunTimeFallOffMultiplier, actualStunTime, 10f * stunTimeFallOffMultiplier, actualAfterTime);
             }
         }
