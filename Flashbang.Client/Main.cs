@@ -13,18 +13,22 @@ namespace Flashbang.Client
         private const string PTFX_DICT = "core";
         private const string PTFX_ASSET = "ent_anim_paparazzi_flash";
         
+        private const string WEAPON_FLASHBANG = "WEAPON_FLASHBANG";
+        private const string WEAPON_FLASHBANG_MODEL = "w_ex_flashbang";
+
+        private const string ANIMATION_DICT = "anim@heists@ornate_bank@thermal_charge";
+        private const string ANIMATION_ENTER = "cover_eyes_intro";
+        private const string ANIMATION_EXIT = "cover_eyes_exit";
+
+        private const float MAX_CAMERA_SHAKE_AMPLITUDE = 25.0f;
+        private const float MAX_CAMERA_SHAKE_AFTER_AMPLITUDE = 18.0f;
+        
         private bool _flashbangEquipped = false;
-        private const float _maxShakeAmplitude = 25.0f;
-        private const float _maxAfterShakeAmplitude = 18.0f;
         private float _totalFlashShakeAmp = 0.0f;
         private float _totalAfterShakeAmp = 0.0f;
         private int _flashTimersRunning = 0;
         private bool _isCameraShakeEnabled = false;
         private int _afterTimersRunning = 0;
-        private const string _weaponModel = "w_ex_flashbang";
-        
-        private string[] _animationCoverEyesIntro = new string[] { "anim@heists@ornate_bank@thermal_charge", "cover_eyes_intro" };
-        private string[] _animationCoverEyesExit = new string[] { "anim@heists@ornate_bank@thermal_charge", "cover_eyes_exit" };
 
         Log Log = new();
 
@@ -101,9 +105,9 @@ namespace Flashbang.Client
             }
             else
             {
-                if (amplitude > _maxShakeAmplitude)
+                if (amplitude > MAX_CAMERA_SHAKE_AMPLITUDE)
                 {
-                    return (_maxShakeAmplitude);
+                    return (MAX_CAMERA_SHAKE_AMPLITUDE);
                 }
                 else
                 {
@@ -120,9 +124,9 @@ namespace Flashbang.Client
             }
             else
             {
-                if (amplitude > _maxAfterShakeAmplitude)
+                if (amplitude > MAX_CAMERA_SHAKE_AFTER_AMPLITUDE)
                 {
-                    return (_maxAfterShakeAmplitude);
+                    return (MAX_CAMERA_SHAKE_AFTER_AMPLITUDE);
                 }
                 else
                 {
@@ -167,11 +171,13 @@ namespace Flashbang.Client
             DisablePlayerFromUsingWeapons(duration);
             SetCameraShakeAmplitude(ValidateFlashbangCameraShakeAmplitude(_totalFlashShakeAmp));
 
+            API.RequestAnimDict(ANIMATION_DICT);
+
             // Animation and screen effect
             if (_flashTimersRunning == 1)
             {
                 API.AnimpostfxPlay("Dont_tazeme_bro", 0, true);
-                await ped.Task.PlayAnimation(_animationCoverEyesIntro[0], _animationCoverEyesIntro[1], -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
+                await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_ENTER, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
             }
 
             // Wait
@@ -185,9 +191,11 @@ namespace Flashbang.Client
             // Cleanup
             if (_flashTimersRunning == 0)
             {
-                await ped.Task.PlayAnimation(_animationCoverEyesExit[0], _animationCoverEyesExit[1], -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
+                await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_EXIT, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
                 AfterFlashbangEffect(afterShakeAmplitude, afterEffectDuration);
             }
+
+            API.RemoveAnimDict(ANIMATION_DICT);
         }
 
         private void ApplyDamageToPedIfInLethalRadius(Ped ped, Vector3 position, float lethalRaduis, int damage)
@@ -201,16 +209,17 @@ namespace Flashbang.Client
 
         private async void OnFlashbangExplodeAsync(FlashbangMessage message)
         {
+            Ped ped = Game.PlayerPed;
+            int pedHandle = ped.Handle;
+            
             bool hit = false;
             int entityHit = 0;
             int result = 1;
             bool playerHit = false;
             Vector3 hitPos = new Vector3();
             Vector3 surfaceNormal = new Vector3();
-            Ped ped = Game.PlayerPed;
-            int pedHandle = ped.Handle;
-            Vector3 pedPos = API.GetPedBoneCoords(API.PlayerPedId(), 0x62ac, 0, 0, 0);
-            Vector3 pedPos2 = API.GetPedBoneCoords(API.PlayerPedId(), 0x6b52, 0, 0, 0);
+            Vector3 pedPos = API.GetPedBoneCoords(pedHandle, 0x62ac, 0, 0, 0);
+            Vector3 pedPos2 = API.GetPedBoneCoords(pedHandle, 0x6b52, 0, 0, 0);
             Vector3 pos = message.Position;
             Vector3 hitReg = new Vector3(pedPos.X - message.Position.X, pedPos.Y - message.Position.X, pedPos.Z - message.Position.Z); // Richtungsvektor
             PlayParticleEffectAtPosition(pos);
@@ -248,7 +257,7 @@ namespace Flashbang.Client
                 result = API.GetShapeTestResult(handle, ref hit, ref hitPos, ref surfaceNormal, ref entityHit);
                 await Delay(0);
             }
-            playerHit = (result == 2) && (entityHit == API.GetPlayerPed(-1));
+            playerHit = (result == 2) && (entityHit == pedHandle);
 
             handle = API.StartShapeTestLosProbe(pos.X, pos.Y, pos.Z, pedPos2.X + (10 * hitReg.X), pedPos2.Y + (10 * hitReg.Y), pedPos2.Z + (10 * hitReg.Z), 0b0000_0000_1001_1111, message.Prop, 0b0000_0000_0000_0100);
 
@@ -257,7 +266,7 @@ namespace Flashbang.Client
                 API.GetShapeTestResult(handle, ref hit, ref hitPos, ref surfaceNormal, ref entityHit);
                 await Delay(0);
             }
-            playerHit = playerHit || ((result == 2) && (entityHit == API.GetPlayerPed(-1)));
+            playerHit = playerHit || ((result == 2) && (entityHit == pedHandle));
 
             if ((faceDistance <= message.Range) && playerHit)
             {
@@ -271,7 +280,7 @@ namespace Flashbang.Client
             Ped playerPed = Game.PlayerPed;
             if (!_flashbangEquipped)
             {
-                if (playerPed.Weapons.Current.Hash == (WeaponHash)API.GetHashKey("WEAPON_FLASHBANG"))
+                if (playerPed.Weapons.Current.Hash == (WeaponHash)API.GetHashKey(WEAPON_FLASHBANG))
                 {
                     _flashbangEquipped = true;
                 }
@@ -285,7 +294,7 @@ namespace Flashbang.Client
                     await Delay(100);
 
                     Vector3 pos = playerPed.Position;
-                    int objectHandle = API.GetClosestObjectOfType(pos.X, pos.Y, pos.Z, 50f, (uint)API.GetHashKey(_weaponModel), false, false, false);
+                    int objectHandle = API.GetClosestObjectOfType(pos.X, pos.Y, pos.Z, 50f, (uint)API.GetHashKey(WEAPON_FLASHBANG_MODEL), false, false, false);
 
                     if (objectHandle != 0)
                     {
