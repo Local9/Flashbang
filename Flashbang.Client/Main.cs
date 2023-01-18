@@ -5,6 +5,7 @@ using Logger;
 using System;
 using System.Threading.Tasks;
 using Flashbang.Shared;
+using System.Security.Cryptography;
 
 namespace Flashbang.Client
 {
@@ -18,6 +19,7 @@ namespace Flashbang.Client
 
         private const string ANIMATION_DICT = "anim@heists@ornate_bank@thermal_charge";
         private const string ANIMATION_ENTER = "cover_eyes_intro";
+        private const string ANIMATION_COVER_EYES = "cover_eyes_loop";
         private const string ANIMATION_EXIT = "cover_eyes_exit";
 
         private const float MAX_CAMERA_SHAKE_AMPLITUDE = 25.0f;
@@ -177,11 +179,14 @@ namespace Flashbang.Client
             if (_flashTimersRunning == 1)
             {
                 API.AnimpostfxPlay("Dont_tazeme_bro", 0, true);
-                await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_ENTER, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
+                await SetPedAnimationAsync(ped, 1);
             }
 
             // Wait
             await Delay(duration);
+
+            if (!API.IsEntityPlayingAnim(ped.Handle, ANIMATION_DICT, ANIMATION_COVER_EYES, 3))
+                await SetPedAnimationAsync(ped, 2);
 
             // Debuffs
             _flashTimersRunning--;
@@ -191,11 +196,31 @@ namespace Flashbang.Client
             // Cleanup
             if (_flashTimersRunning == 0)
             {
-                await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_EXIT, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
                 AfterFlashbangEffect(afterShakeAmplitude, afterEffectDuration);
+                await SetPedAnimationAsync(ped, 3);
+                await SetPedAnimationAsync(ped, 0);
             }
 
             API.RemoveAnimDict(ANIMATION_DICT);
+        }
+
+        private async Task SetPedAnimationAsync(Ped ped, int animationState)
+        {
+            switch (animationState)
+            {
+                case 1:
+                    await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_ENTER, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
+                    break;
+                case 2:
+                    await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_COVER_EYES, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
+                    break;
+                case 3:
+                    await ped.Task.PlayAnimation(ANIMATION_DICT, ANIMATION_EXIT, -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
+                    break;
+                default:
+                    ped.Task.ClearAnimation(ANIMATION_DICT, ANIMATION_EXIT);
+                    break;
+            }
         }
 
         private void ApplyDamageToPedIfInLethalRadius(Ped ped, Vector3 position, float lethalRaduis, int damage)
