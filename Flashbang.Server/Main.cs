@@ -30,7 +30,7 @@ namespace Flashbang.Server
         {
             EventDispatcher eventDispatcher = new();
             await BaseScript.Delay(0);
-            EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<int, FlashbangMessage>(OnFlashbangMessageAsync));
+            EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<Player, FlashbangMessage>(OnFlashbangMessageAsync));
         }
 
         internal List<Player> GetClosestPlayers(Vector3 position, float range)
@@ -57,8 +57,10 @@ namespace Flashbang.Server
             return closestPlayers;
         }
 
-        private void OnFlashbangMessageAsync(int source, FlashbangMessage message)
+        private void OnFlashbangMessageAsync([FromSource] Player player, FlashbangMessage message)
         {
+            Logger.Debug($"Received Flashbang Message from '{player.Name}'");
+            
             message.StunDuration = _config.StunDuration;
             message.AfterStunDuration = _config.AfterStunDuration;
             message.Range = _config.Range;
@@ -67,7 +69,7 @@ namespace Flashbang.Server
 
             List<Player> closestPlayers = GetClosestPlayers(message.Position, _config.MaxUpdateRange);
 
-            EventDispatcher.Send(closestPlayers, "Flashbang:DispatchExplosion", message);
+            EventDispatcher.Send(closestPlayers, "Flashbang:Explode", message);
         }
     }
 }
