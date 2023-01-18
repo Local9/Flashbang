@@ -13,6 +13,18 @@
     <AppendRuntimeIdentifierToOutputPath>False</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CLIENT|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CitizenFX.Core.Client" Version="1.0.6212" ExcludeAssets="runtime" />
     <PackageReference Include="FxEvents.FiveM.Client" Version="1.0.2" />
