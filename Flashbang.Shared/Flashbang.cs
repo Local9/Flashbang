@@ -1,6 +1,6 @@
 ﻿namespace Flashbang.Shared
 {
-    public class FlashbangMessage
+    public partial class FlashbangMessage
     {
         public Vector3 Position;
         public int StunDuration = 8;

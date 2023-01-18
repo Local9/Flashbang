@@ -3,9 +3,11 @@ global using CitizenFX.Core.Native;
 using Flashbang.Server.Models;
 using Flashbang.Shared;
 using FxEvents;
+using Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Flashbang.Server
 {
@@ -13,15 +15,25 @@ namespace Flashbang.Server
     {
         private Config _config = new();
         private PlayerList _playerList;
+        private Log Logger = new();
             
         public Main()
         {
-            EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<FlashbangMessage>(OnFlashbangMessage));
+            Logger.Info($"Started Flashbang Server Resource");
             _config.Load();
             _playerList = Players;
+
+            Load();
         }
 
-        public List<Player> GetClosestPlayers(Vector3 position, float range)
+        async void Load()
+        {
+            EventDispatcher eventDispatcher = new();
+            await BaseScript.Delay(0);
+            EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<int, FlashbangMessage>(OnFlashbangMessageAsync));
+        }
+
+        internal List<Player> GetClosestPlayers(Vector3 position, float range)
         {
             List<Player> closestPlayers = new();
 
@@ -36,7 +48,7 @@ namespace Flashbang.Server
                 bool isPlayerDead = API.GetEntityHealth(playerPedHandle) == 0;
                 if (!isEntityVisible || isPlayerDead) continue;
 
-                if (Vector3.Distance(player.Character.Position, position) <= _config.MaxUpdateRange)
+                if (Vector3.Distance(player.Character.Position, position) <= range)
                 {
                     closestPlayers.Add(player);
                 }
@@ -45,7 +57,7 @@ namespace Flashbang.Server
             return closestPlayers;
         }
 
-        private void OnFlashbangMessage(FlashbangMessage message)
+        private void OnFlashbangMessageAsync(int source, FlashbangMessage message)
         {
             message.StunDuration = _config.StunDuration;
             message.AfterStunDuration = _config.AfterStunDuration;
@@ -53,7 +65,7 @@ namespace Flashbang.Server
             message.Damage = _config.Damage;
             message.LethalRadius = _config.LethalRadius;
 
-            List<Player> closestPlayers = GetClosestPlayers(message.Position, _config.Range);
+            List<Player> closestPlayers = GetClosestPlayers(message.Position, _config.MaxUpdateRange);
 
             EventDispatcher.Send(closestPlayers, "Flashbang:DispatchExplosion", message);
         }

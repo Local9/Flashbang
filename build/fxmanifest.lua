@@ -16,7 +16,8 @@ description "Flashbang script for FiveM"
 ---------------------------------------------------------------------------
 files {
 	"data/**/*",
-	"Newtonsoft.Json.dll"
+	"FxEvents.Client.dll",
+	"Newtonsoft.Json.dll",
 }
 
 ---------------------------------------------------------------------------
@@ -32,5 +33,5 @@ data_file "PED_PERSONALITY_FILE" "data/pedpersonality.meta"
 ---------------------------------------------------------------------------
 -- SCRIPTS
 ---------------------------------------------------------------------------
-server_scripts "*.Server.net.dll"
-client_scripts "*.Client.net.dll"
+server_script "Flashbang.Server.net.dll"
+client_script "Flashbang.Client.net.dll"

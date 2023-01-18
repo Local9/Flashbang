@@ -1,11 +1,11 @@
 ﻿global using CitizenFX.Core;
 global using CitizenFX.Core.Native;
+using CitizenFX.Core.UI;
+using Flashbang.Shared;
 using FxEvents;
 using Logger;
 using System;
 using System.Threading.Tasks;
-using Flashbang.Shared;
-using System.Security.Cryptography;
 
 namespace Flashbang.Client
 {
@@ -32,10 +32,11 @@ namespace Flashbang.Client
         private bool _isCameraShakeEnabled = false;
         private int _afterTimersRunning = 0;
 
-        Log Log = new();
+        Log Logger = new();
 
         public Main()
         {
+            Logger.Info($"Started Flashbang Client Resource");
             API.AddTextEntry("WT_GNADE_FLSH", "Flashbang");
 
             EventDispatcher.Mount("Flashbang:Explode", new Action<FlashbangMessage>(OnFlashbangExplodeAsync));
@@ -228,11 +229,11 @@ namespace Flashbang.Client
             if (ped.IsInRangeOf(position, lethalRaduis))
             {
                 ped.ApplyDamage(damage);
-                Log.Debug($"Applying Damage Amount: {damage}");
+                Logger.Debug($"Applying Damage Amount: {damage}");
             }
         }
 
-        private async void OnFlashbangExplodeAsync(FlashbangMessage message)
+        public async void OnFlashbangExplodeAsync(FlashbangMessage message)
         {
             Ped ped = Game.PlayerPed;
             int pedHandle = ped.Handle;
@@ -303,6 +304,7 @@ namespace Flashbang.Client
         private async Task OnFlashbangAsync()
         {
             Ped playerPed = Game.PlayerPed;
+
             if (!_flashbangEquipped)
             {
                 if (playerPed.Weapons.Current.Hash == (WeaponHash)API.GetHashKey(WEAPON_FLASHBANG))
@@ -323,11 +325,13 @@ namespace Flashbang.Client
 
                     if (objectHandle != 0)
                     {
+                        Screen.ShowNotification($"Throwing Flashbang", true);
                         SendFlashbangThrownMessage(objectHandle);
                     }
                 }
             }
-            await Task.FromResult(0);
+
+            Screen.ShowSubtitle($"Flashbang Equipped: {_flashbangEquipped} / Player Shooting: {playerPed.IsShooting}");
         }
 
         private async void PlayParticleEffectAtPosition(Vector3 pos)
