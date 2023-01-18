@@ -26,4 +26,6 @@
     <Exec Command="xcopy /f /r /y /i bin\Release ..\build" />
   </Target>
 
+  <Import Project="..\Flashbang.Shared\Flashbang.Shared.projitems" Label="Shared" />
+
 </Project>

@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flashbang.Client", "Flashbang.Client\Flashbang.Client.csproj", "{8139EA12-22DD-45FF-B8A0-8DDAD59BF793}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Flashbang.Client", "Flashbang.Client\Flashbang.Client.csproj", "{8139EA12-22DD-45FF-B8A0-8DDAD59BF793}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flashbang.Server", "Flashbang.Server\Flashbang.Server.csproj", "{D43C7514-E78D-4596-95B3-C7AA40F9E0C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Flashbang.Server", "Flashbang.Server\Flashbang.Server.csproj", "{D43C7514-E78D-4596-95B3-C7AA40F9E0C9}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Flashbang.Shared", "Flashbang.Shared\Flashbang.Shared.shproj", "{DDE3DDA6-9680-4DE0-8DFD-4EBC990BDFD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,5 +29,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0D07D1CD-F91E-490F-AC66-4644569F8114}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Flashbang.Shared\Flashbang.Shared.projitems*{8139ea12-22dd-45ff-b8a0-8ddad59bf793}*SharedItemsImports = 5
+		Flashbang.Shared\Flashbang.Shared.projitems*{d43c7514-e78d-4596-95b3-c7aa40f9e0c9}*SharedItemsImports = 5
+		Flashbang.Shared\Flashbang.Shared.projitems*{dde3dda6-9680-4de0-8dfd-4ebc990bdfd1}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

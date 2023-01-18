@@ -1,31 +1,61 @@
-﻿using CitizenFX.Core;
-using CitizenFX.Core.Native;
+﻿global using CitizenFX.Core;
+global using CitizenFX.Core.Native;
 using Flashbang.Server.Models;
-using Newtonsoft.Json;
+using Flashbang.Shared;
+using FxEvents;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Flashbang.Server
 {
     public class Main : BaseScript
     {
-        private Config config = new Config();
-
+        private Config _config = new();
+        private PlayerList _playerList;
+            
         public Main()
         {
-            EventHandlers.Add("Flashbang:DispatchExplosion", new Action<float, float, float, int>(FB_DispatchExplosion));
-            LoadConfig();
+            EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<FlashbangMessage>(OnFlashbangMessage));
+            _config.Load();
+            _playerList = Players;
         }
 
-        private void LoadConfig()
+        public List<Player> GetClosestPlayers(Vector3 position, float range)
         {
-            string resourceName = API.GetCurrentResourceName();
-            string json = API.LoadResourceFile(resourceName, "config.json");
-            config = JsonConvert.DeserializeObject<Config>(json);
+            List<Player> closestPlayers = new();
+
+            for (int i = 0; i < _playerList.Count(); i++)
+            {
+                Player player = _playerList[i];
+
+                if (player == null || player.Character == null) continue;
+
+                int playerPedHandle = player.Character.Handle;
+                bool isEntityVisible = API.IsEntityVisible(playerPedHandle);
+                bool isPlayerDead = API.GetEntityHealth(playerPedHandle) == 0;
+                if (!isEntityVisible || isPlayerDead) continue;
+
+                if (Vector3.Distance(player.Character.Position, position) <= _config.MaxUpdateRange)
+                {
+                    closestPlayers.Add(player);
+                }
+            }
+
+            return closestPlayers;
         }
 
-        private void FB_DispatchExplosion(float x, float y, float z, int prop)
+        private void OnFlashbangMessage(FlashbangMessage message)
         {
-            TriggerClientEvent("Flashbang:Explode", x, y, z, config.StunTime, config.AfterTime, config.Range, prop, config.Damage, config.LethalRange);
+            message.StunDuration = _config.StunDuration;
+            message.AfterStunDuration = _config.AfterStunDuration;
+            message.Range = _config.Range;
+            message.Damage = _config.Damage;
+            message.LethalRadius = _config.LethalRadius;
+
+            List<Player> closestPlayers = GetClosestPlayers(message.Position, _config.Range);
+
+            EventDispatcher.Send(closestPlayers, "Flashbang:DispatchExplosion", message);
         }
     }
 }
