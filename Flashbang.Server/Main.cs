@@ -2,9 +2,7 @@
 global using CitizenFX.Core.Native;
 using Flashbang.Server.Models;
 using Flashbang.Shared;
-using FxEvents;
-using FxEvents.Shared;
-using Logger;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +13,13 @@ namespace Flashbang.Server
     {
         private Config _config = new();
         private PlayerList _playerList;
-        private Log Logger = new();
             
         public Main()
         {
-            Logger.Info($"Started Flashbang Server Resource");
             _config.Load();
             _playerList = Players;
 
-            EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<Player, FlashbangMessage>(OnFlashbangMessageAsync));
+            EventHandlers["Flashbang:DispatchExplosion"] += new Action<string>(OnFlashbangMessageAsync);
         }
 
         internal List<Player> GetClosestPlayers(Vector3 position, float range)
@@ -50,22 +46,16 @@ namespace Flashbang.Server
             return closestPlayers;
         }
 
-        private void OnFlashbangMessageAsync([FromSource] Player player, FlashbangMessage message)
+        private void OnFlashbangMessageAsync(string message)
         {
-            Logger.Debug($"Received Flashbang Message from '{player.Name}'");
-            
-            message.StunDuration = _config.StunDuration;
-            message.AfterStunDuration = _config.AfterStunDuration;
-            message.Range = _config.Range;
-            message.Damage = _config.Damage;
-            message.LethalRadius = _config.LethalRadius;
+            FlashbangMessage flashbangMessage = JsonConvert.DeserializeObject<FlashbangMessage>(message);
+            flashbangMessage.StunDuration = _config.StunDuration;
+            flashbangMessage.AfterStunDuration = _config.AfterStunDuration;
+            flashbangMessage.Range = _config.Range;
+            flashbangMessage.Damage = _config.Damage;
+            flashbangMessage.LethalRadius = _config.LethalRadius;
 
-            List<Player> closestPlayers = GetClosestPlayers(message.Position, _config.MaxUpdateRange);
-
-            Logger.Debug($"Sending Flashbang Message to {closestPlayers.Count} players.");
-            Logger.Debug($"Flashbang Message: {message.ToJson()}");
-
-            EventDispatcher.Send(closestPlayers, "Flashbang:Explode", message);
+            TriggerClientEvent("Flashbang:DispatchExplosion", JsonConvert.SerializeObject(flashbangMessage));
         }
     }
 }

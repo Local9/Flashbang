@@ -1,9 +1,7 @@
 ﻿global using CitizenFX.Core;
 global using CitizenFX.Core.Native;
-using CitizenFX.Core.UI;
 using Flashbang.Shared;
-using FxEvents;
-using Logger;
+using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
@@ -32,15 +30,12 @@ namespace Flashbang.Client
         private bool _isCameraShakeEnabled = false;
         private int _afterTimersRunning = 0;
 
-        Log Logger = new();
-
         public Main()
         {
-            Logger.Info($"Started Flashbang Client Resource");
             API.AddTextEntry("WT_GNADE_FLSH", "Flashbang");
 
-            EventDispatcher.Mount("Flashbang:Explode", new Action<FlashbangMessage>(OnFlashbangExplodeAsync));
-            
+            EventHandlers["Flashbang:Explode"] += new Action<string>(OnFlashbangExplodeAsync);
+
             Tick += OnFlashbangAsync;
         }
 
@@ -57,7 +52,7 @@ namespace Flashbang.Client
             flashbangMessage.Position = flashbangPos;
             flashbangMessage.Prop = propHandle;
 
-            EventDispatcher.Send("Flashbang:DispatchExplosion", flashbangMessage);
+            TriggerServerEvent("Flashbang:DispatchExplosion", JsonConvert.SerializeObject(flashbangMessage));
 
             if (flashbang.Exists())
                 flashbang.Delete();
@@ -229,12 +224,13 @@ namespace Flashbang.Client
             if (ped.IsInRangeOf(position, lethalRaduis))
             {
                 ped.ApplyDamage(damage);
-                Logger.Debug($"Applying Damage Amount: {damage}");
             }
         }
 
-        public async void OnFlashbangExplodeAsync(FlashbangMessage message)
+        public async void OnFlashbangExplodeAsync(string jsonMessage)
         {
+            FlashbangMessage message = JsonConvert.DeserializeObject<FlashbangMessage>(jsonMessage);
+
             Ped ped = Game.PlayerPed;
             int pedHandle = ped.Handle;
             
@@ -325,13 +321,10 @@ namespace Flashbang.Client
 
                     if (objectHandle != 0)
                     {
-                        Screen.ShowNotification($"Throwing Flashbang", true);
                         SendFlashbangThrownMessage(objectHandle);
                     }
                 }
             }
-
-            Screen.ShowSubtitle($"Flashbang Equipped: {_flashbangEquipped} / Player Shooting: {playerPed.IsShooting}");
         }
 
         private async void PlayParticleEffectAtPosition(Vector3 pos)

@@ -10,7 +10,6 @@
       "Flashbang.Server.net/1.0.0": {
         "dependencies": {
           "CitizenFX.Core.Server": "1.0.6212",
-          "FxEvents.Server": "1.0.2",
           "NETStandard.Library": "2.0.3",
           "Newtonsoft.Json": "12.0.2",
           "Newtonsoft.Json.Reference": "12.0.0.0"
@@ -20,27 +19,6 @@
         }
       },
       "CitizenFX.Core.Server/1.0.6212": {},
-      "FxEvents.Server/1.0.2": {
-        "dependencies": {
-          "CitizenFX.Core.Server": "1.0.6212",
-          "Microsoft.CSharp": "4.7.0",
-          "Newtonsoft.Json": "12.0.2"
-        },
-        "runtime": {
-          "lib/netstandard2.0/FxEvents.Server.dll": {
-            "assemblyVersion": "1.0.2.0",
-            "fileVersion": "1.0.2.0"
-          }
-        }
-      },
-      "Microsoft.CSharp/4.7.0": {
-        "runtime": {
-          "lib/netstandard2.0/Microsoft.CSharp.dll": {
-            "assemblyVersion": "4.0.5.0",
-            "fileVersion": "4.700.19.56404"
-          }
-        }
-      },
       "Microsoft.NETCore.Platforms/1.1.0": {},
       "NETStandard.Library/2.0.3": {
         "dependencies": {
@@ -77,20 +55,6 @@
       "sha512": "sha512-GSwa00XNZ9GbKqKvUPGyB0apzIQu72XeMchrmC0CX0jBDPcoe9T4aLpsiWYTQLdpGFEBTe4ujicbqNqcvVPOgA==",
       "path": "citizenfx.core.server/1.0.6212",
       "hashPath": "citizenfx.core.server.1.0.6212.nupkg.sha512"
-    },
-    "FxEvents.Server/1.0.2": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-Kcw7F90c7UvcqI4Y+jxtmAbD1mYeQKJCsielUdUaR8g5EdTFXWJjIa1PvRkN0OeqUagnT67J360QVuW1zKwJ9Q==",
-      "path": "fxevents.server/1.0.2",
-      "hashPath": "fxevents.server.1.0.2.nupkg.sha512"
-    },
-    "Microsoft.CSharp/4.7.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-pTj+D3uJWyN3My70i2Hqo+OXixq3Os2D1nJ2x92FFo6sk8fYS1m1WLNTs0Dc1uPaViH0YvEEwvzddQ7y4rhXmA==",
-      "path": "microsoft.csharp/4.7.0",
-      "hashPath": "microsoft.csharp.4.7.0.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",
