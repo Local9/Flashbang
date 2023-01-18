@@ -55,7 +55,12 @@ namespace Flashbang.Server
             flashbangMessage.Damage = _config.Damage;
             flashbangMessage.LethalRadius = _config.LethalRadius;
 
-            TriggerClientEvent("Flashbang:Explode", JsonConvert.SerializeObject(flashbangMessage));
+            List<Player> closestPlayers = GetClosestPlayers(flashbangMessage.Position, _config.MaxUpdateRange);
+
+            foreach (Player player in closestPlayers)
+            {
+                TriggerClientEvent(player, "Flashbang:Explode", JsonConvert.SerializeObject(flashbangMessage));
+            }
         }
     }
 }
