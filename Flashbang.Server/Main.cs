@@ -1,8 +1,8 @@
-﻿using System;
-using CitizenFX.Core;
+﻿using CitizenFX.Core;
 using CitizenFX.Core.Native;
-using Newtonsoft.Json;
 using Flashbang.Server.Models;
+using Newtonsoft.Json;
+using System;
 
 namespace Flashbang.Server
 {
@@ -24,8 +24,8 @@ namespace Flashbang.Server
         }
 
         private void FB_DispatchExplosion(float x, float y, float z, int prop)
-        {     
-            TriggerClientEvent("Flashbang:Explode", x, y, z, config.StunTime, config.AfterTime, config.Range, prop,config.Damage, config.LethalRange);
+        {
+            TriggerClientEvent("Flashbang:Explode", x, y, z, config.StunTime, config.AfterTime, config.Range, prop, config.Damage, config.LethalRange);
         }
     }
 }

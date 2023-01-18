@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using CitizenFX.Core;
+﻿using CitizenFX.Core;
 using CitizenFX.Core.Native;
-using CitizenFX.Core.UI;
+using System;
+using System.Threading.Tasks;
 
 namespace Flashbang.Client
 {
@@ -48,23 +47,23 @@ namespace Flashbang.Client
             flashbang.Delete();
         }
 
-        private async void drawLine (float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a, int t) 
+        private async void drawLine(float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a, int t)
         {
-            int current = 0;  
+            int current = 0;
             while (current <= t)
-             {
+            {
                 API.DrawLine(x1, y1, z1, x2, y2, z2, r, g, b, a);
                 await Delay(1);
-                current ++;
-             }
+                current++;
+            }
         }
 
-        private async void cout (string text) 
+        private async void cout(string text)
         {
             CitizenFX.Core.Debug.WriteLine(text);
         }
 
-        private void enableShakeCam (float amp)
+        private void enableShakeCam(float amp)
         {
             if (shakeCamActive)
             {
@@ -77,21 +76,21 @@ namespace Flashbang.Client
             }
         }
 
-        private async void shakeCamFalloff (float amp) 
+        private async void shakeCamFalloff(float amp)
         {
             float currentAmp = amp;
-            float ampInterval = amp/2;
+            float ampInterval = amp / 2;
             while (currentAmp > 0.0f)
-             {
+            {
                 currentAmp = currentAmp - ampInterval;
                 GameplayCamera.ShakeAmplitude = currentAmp;
                 await Delay(500);
-             }
+            }
             GameplayCamera.StopShaking();
             shakeCamActive = false;
         }
 
-        private async void disableFiring (int time)
+        private async void disableFiring(int time)
         {
             int finTime = Game.GameTime + time;
             while (Game.GameTime < finTime)
@@ -101,7 +100,7 @@ namespace Flashbang.Client
             }
         }
 
-        private float capFlashShakeAmp (float amp)
+        private float capFlashShakeAmp(float amp)
         {
             if (amp < 0.0f)
             {
@@ -109,18 +108,18 @@ namespace Flashbang.Client
             }
             else
             {
-                if (amp > maxShakeAmp) 
+                if (amp > maxShakeAmp)
                 {
                     return (maxShakeAmp);
                 }
-                else 
+                else
                 {
                     return (amp);
                 }
             }
         }
 
-        private float capAfterShakeAmp (float amp)
+        private float capAfterShakeAmp(float amp)
         {
             if (amp < 0.0f)
             {
@@ -128,18 +127,18 @@ namespace Flashbang.Client
             }
             else
             {
-                if (amp > maxAfterShakeAmp) 
+                if (amp > maxAfterShakeAmp)
                 {
                     return (maxAfterShakeAmp);
                 }
-                else 
+                else
                 {
                     return (amp);
                 }
             }
         }
 
-        private async void afterEffect (float shakeAmp, int time)
+        private async void afterEffect(float shakeAmp, int time)
         {
             // Buffs
             afterTimersRunning++;
@@ -161,12 +160,12 @@ namespace Flashbang.Client
                 {
                     shakeCamFalloff(totalFlashShakeAmp + shakeAmp);
                     API.AnimpostfxStop("Dont_tazeme_bro");
-                } 
+                }
             }
         }
 
-        private async void flashEffect (float shakeAmp, int time, float afterShakeAmp, int afterTime)
-        {   
+        private async void flashEffect(float shakeAmp, int time, float afterShakeAmp, int afterTime)
+        {
             Ped ped = Game.Player.Character;
 
             // Buffs
@@ -180,7 +179,7 @@ namespace Flashbang.Client
             {
                 API.AnimpostfxPlay("Dont_tazeme_bro", 0, true);
                 await ped.Task.PlayAnimation(Animation[0], Animation[1], -8f, -8f, -1, AnimationFlags.StayInEndFrame | AnimationFlags.UpperBodyOnly | AnimationFlags.AllowRotation, 8f);
-            }            
+            }
 
             // Wait
             await Delay(time);
@@ -195,11 +194,11 @@ namespace Flashbang.Client
             {
                 ped.Task.ClearAnimation(Animation[0], Animation[1]);
                 afterEffect(afterShakeAmp, afterTime);
-            } 
+            }
         }
 
         private async void checkLethalRadius(float lethRange, float x, float y, float z, int damage)
-        {   
+        {
             Ped ped = Game.Player.Character;
             Vector3 pos = new Vector3(x, y, z);
             float distance = World.GetDistance(ped.Position, pos);
@@ -210,8 +209,8 @@ namespace Flashbang.Client
 
             if (distance <= lethRange)
             {
-                 API.ApplyDamageToPed(API.GetPlayerPed(-1), damage, false);
-                 cout("Applying Damage Amount: " + damage.ToString());
+                API.ApplyDamageToPed(API.GetPlayerPed(-1), damage, false);
+                cout("Applying Damage Amount: " + damage.ToString());
             }
         }
 
@@ -228,7 +227,7 @@ namespace Flashbang.Client
             Vector3 pedPos = API.GetPedBoneCoords(API.PlayerPedId(), 0x62ac, 0, 0, 0);
             Vector3 pedPos2 = API.GetPedBoneCoords(API.PlayerPedId(), 0x6b52, 0, 0, 0);
             Vector3 pos = new Vector3(x, y, z);
-            Vector3 hitReg = new Vector3(pedPos.X-x, pedPos.Y-y, pedPos.Z-z); // Richtungsvektor
+            Vector3 hitReg = new Vector3(pedPos.X - x, pedPos.Y - y, pedPos.Z - z); // Richtungsvektor
             PlayParticles(pos);
 
             float distance = World.GetDistance(ped.Position, pos);
@@ -242,17 +241,17 @@ namespace Flashbang.Client
             float shakeCamAmp = 15.0f;
             effectFalloffStunTime = (int)(((float)stunTime) * stunTimeMultiplier); // Distanz ~> FalloffStunTime
             effectFalloffAfterTime = (int)(((float)afterTime) * stunTimeMultiplier);
-            
+
             int actualStunTime = (stunTime - effectFalloffStunTime) * 1000;
-            int actualAfterTime =  (afterTime - effectFalloffAfterTime) * 1000;
-            float stunTimeFallOffMultiplier= ((float) actualStunTime) / ((float)(stunTime * 1000));
+            int actualAfterTime = (afterTime - effectFalloffAfterTime) * 1000;
+            float stunTimeFallOffMultiplier = ((float)actualStunTime) / ((float)(stunTime * 1000));
 
             if (actualStunTime <= 0)
             {
                 actualStunTime = 1;
             }
 
-             if (actualAfterTime <= 0)
+            if (actualAfterTime <= 0)
             {
                 actualAfterTime = 1;
             }
@@ -262,8 +261,8 @@ namespace Flashbang.Client
             //drawLine(x, y, z, pedPos.X + (10*hitReg.X), pedPos.Y + (10*hitReg.Y), pedPos.Z + (10*hitReg.Z), 255, 0, 0, 255 ,1000);
             //drawLine(x, y, z, pedPos2.X + (10*hitReg.X), pedPos2.Y + (10*hitReg.Y), pedPos2.Z + (10*hitReg.Z), 255, 0, 0, 255 ,1000);
             int handle = 0;
-            handle = API.StartShapeTestLosProbe(x, y, z, pedPos.X + (10*hitReg.X), pedPos.Y + (10*hitReg.Y), pedPos.Z + (10*hitReg.Z), 0b0000_0000_1001_1111, prop, 0b0000_0000_0000_0100);
-            
+            handle = API.StartShapeTestLosProbe(x, y, z, pedPos.X + (10 * hitReg.X), pedPos.Y + (10 * hitReg.Y), pedPos.Z + (10 * hitReg.Z), 0b0000_0000_1001_1111, prop, 0b0000_0000_0000_0100);
+
             while (result == 1)
             {
                 result = API.GetShapeTestResult(handle, ref hit, ref hitPos, ref surfaceNormal, ref entityHit);
@@ -272,8 +271,8 @@ namespace Flashbang.Client
             playerHit = (result == 2) && (entityHit == API.GetPlayerPed(-1));
 
             handle = 0;
-            handle = API.StartShapeTestLosProbe(x, y, z, pedPos2.X + (10*hitReg.X), pedPos2.Y + (10*hitReg.Y), pedPos2.Z + (10*hitReg.Z), 0b0000_0000_1001_1111, prop, 0b0000_0000_0000_0100);
-            
+            handle = API.StartShapeTestLosProbe(x, y, z, pedPos2.X + (10 * hitReg.X), pedPos2.Y + (10 * hitReg.Y), pedPos2.Z + (10 * hitReg.Z), 0b0000_0000_1001_1111, prop, 0b0000_0000_0000_0100);
+
             while (handle == 1)
             {
                 API.GetShapeTestResult(handle, ref hit, ref hitPos, ref surfaceNormal, ref entityHit);
@@ -287,7 +286,7 @@ namespace Flashbang.Client
 
                 // https://wiki.gtanet.work/index.php?title=Screen_Effects
                 //Screen.Effects.Start(ScreenEffect.DontTazemeBro, 0, true);
-                
+
                 flashEffect(shakeCamAmp * stunTimeFallOffMultiplier, actualStunTime, 10f * stunTimeFallOffMultiplier, actualAfterTime);
             }
         }
@@ -300,7 +299,8 @@ namespace Flashbang.Client
                 {
                     FlashbangEquipped = true;
                 }
-            } else
+            }
+            else
             {
                 if (Game.Player.Character.IsShooting)
                 {

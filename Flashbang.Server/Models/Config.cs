@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Flashbang.Server.Models
 {
@@ -17,9 +12,9 @@ namespace Flashbang.Server.Models
         [JsonProperty("range")]
         public float Range { get; protected set; } = 8f;
         [JsonProperty("damage")]
-        public int Damage { get; protected set; } = 25; 
+        public int Damage { get; protected set; } = 25;
         [JsonProperty("lethalrange")]
-        public float LethalRange { get; protected set; } = 1.6f; 
+        public float LethalRange { get; protected set; } = 1.6f;
         public Config() { }
     }
 }
