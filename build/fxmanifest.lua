@@ -32,5 +32,5 @@ data_file "PED_PERSONALITY_FILE" "data/pedpersonality.meta"
 ---------------------------------------------------------------------------
 -- SCRIPTS
 ---------------------------------------------------------------------------
-server_script "*.Server.net.dll"
-client_script "*.Client.net.dll"
+server_scripts "*.Server.net.dll"
+client_scripts "*.Client.net.dll"
