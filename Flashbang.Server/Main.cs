@@ -3,11 +3,11 @@ global using CitizenFX.Core.Native;
 using Flashbang.Server.Models;
 using Flashbang.Shared;
 using FxEvents;
+using FxEvents.Shared;
 using Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Flashbang.Server
 {
@@ -23,13 +23,6 @@ namespace Flashbang.Server
             _config.Load();
             _playerList = Players;
 
-            Load();
-        }
-
-        async void Load()
-        {
-            EventDispatcher eventDispatcher = new();
-            await BaseScript.Delay(0);
             EventDispatcher.Mount("Flashbang:DispatchExplosion", new Action<Player, FlashbangMessage>(OnFlashbangMessageAsync));
         }
 
@@ -68,6 +61,9 @@ namespace Flashbang.Server
             message.LethalRadius = _config.LethalRadius;
 
             List<Player> closestPlayers = GetClosestPlayers(message.Position, _config.MaxUpdateRange);
+
+            Logger.Debug($"Sending Flashbang Message to {closestPlayers.Count} players.");
+            Logger.Debug($"Flashbang Message: {message.ToJson()}");
 
             EventDispatcher.Send(closestPlayers, "Flashbang:Explode", message);
         }
